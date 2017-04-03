@@ -66,6 +66,10 @@ sudo apt-get install libtinyxml-dev
 
 ### Compile
 
+Configure the Caffe directory by uncommenting line 5 of `cmake/Modules/FindCaffe.cmake`.
+```
+set(Caffe_DIR /path_to_caffe/build/install)
+```
 From the main directory, type:
 ```
 mkdir build
@@ -85,11 +89,13 @@ bash scripts/download_trained_model.sh
 To visualize the performance of the tracker, first downloaded a pretrained tracker model (above).
 
 ### Visualizing test set performance
-To visualize the performance on the test set, first download (and unzip) the [VOT 2014 dataset](http://www.votchallenge.net/vot2014/dataset.html).
-
+To visualize the performance on the test set, first download (and unzip) the [VOT 2014 dataset](http://www.votchallenge.net/vot2014/dataset.html). The following script will download and unzip it to the `tmp/vot2014` folder, which is also used in further commands below.
+```
+bash scripts/download_vot2014.sh
+```
 Then you can run the tracker on the test set and visualize the output by running the following script:
 ```
-bash scripts/show_tracker_test.sh vot_folder
+bash scripts/show_tracker_test.sh tmp/vot2014
 ```
 where vot_folder is the path to the unzipped VOT files.
 
@@ -97,18 +103,17 @@ where vot_folder is the path to the unzipped VOT files.
 
 To save videos of the tracker running on the test set, run the script:
 ```
-bash scripts/save_videos_test.sh vot_folder
+bash scripts/save_videos_test.sh tmp/vot2014
 ```
 
 ### Visualizing validation set performance
 
 To visualize the performance on the validation set, first download the ALOV dataset (as described below)
 
-Then you can run the tracker on the validation set and visualize the output by running the following script:
+Then you can run the tracker on the validation set and visualize the output by running the following script, with parameters to the ALOV videoes and the annotations:
 ```
-bash scripts/show_tracker_val.sh alov_image_folder alov_annotation_folder
+bash scripts/show_tracker_val.sh tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full
 ```
-where alov_videos_folder is the path to the ALOV videos folder and alov_annotations_folder is the path to the ALOV annotations folder.
 
 Note that, for the pre-trained model downloaded above, after choosing hyperparameters, the model was trained on the training+validation sets (not the test set!) so we would expect the validation performance here to be very good (much better than test set performance).
 
@@ -131,11 +136,9 @@ report_challenge(context, experiments, trackers, sequences); % Use this report f
 
 ### Evaluate validation set performance
 To evaluate the trained tracker model on the validation set, run:
-
 ```
-bash scripts/evaluate_val.sh alov_image_folder alov_annotation_folder 
+bash scripts/evaluate_val.sh tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full
 ```
-
 Note that, for the pre-trained model downloaded above, after choosing hyperparameters, the model was trained on the training+validation sets (not the test set!) so we would expect the validation performance here to be very good (much better than test set performance).
 
 ## Train the tracker
@@ -144,11 +147,12 @@ To train the tracker, you need to download the training sets:
 
 ### ALOV dataset
 
-The ALOV video dataset can be downloaded here: http://alov300pp.joomlafree.it/
+The ALOV video dataset can be downloaded here: http://www.alov300.org/. This script will automatically download the video and annotation data to `tmp/alov`.
+```
+bash scripts/download_alov.sh
+```
+You need to make sure that the training set is distinct from your test set.  If you intend to evaluate the tracker on VOT 2014, then you should remove the following videos from your ALOV training set. These are removed automatically by the above script.
 
-Click "Download Category" and "Download Ground Truth" to download the dataset (21 GB).
-
-You need to make sure that the training set is distinct from your test set.  If you intend to evaluate the tracker on  VOT 2014, then you should remove the following videos from your ALOV training set:
 * 01-Light\_video00016 
 * 01-Light\_video00022 
 * 01-Light\_video00023 
@@ -166,12 +170,14 @@ After registration, follow the links to download the ILSVRC2014 image data, and 
 
 Unzip both of these files.  The image folder contains a collection of more tar files which must be unzipped.  To do so, call:
 ```
+DO NOT COMMIT
 bash scripts/unzip_imagenet.sh imagenet_folder output_folder
 ```
 where imagenet_folder is the name of the file that was downloaded and unzipped, and target_folder is the destination folder for all of the unzipped images.
 
 ### Training
-If you are evaluating multiple models for development, then you need to have a validation set that is separate from your training set that you can use to choose among your different models.  To separate the validation set, make sure that, in loader/loader_alov.cpp, the variable val_ratio is set to 0.2.  This will specify that you want to train on only 80% of the videos, with 20% of the videos being saved for validation.  After your final model and hyperparameters have been selected, you can set val_ratio to 0 to train the final model on the entire training + validation sets (not the test set!).  
+
+If you are evaluating multiple models for development, then you need to have a validation set that is separate from your training set that you can use to choose among your different models.  To separate the validation set, the variable val_ratio is set to 0.2 within within loader/loader_alov.cpp.  This will specify that you want to train on only 80% of the videos, with 20% of the videos being saved for validation.  After your final model and hyperparameters have been selected, you can set val_ratio to 0 to train the final model on the entire training + validation sets (not the test set!).
 
 To train the tracker, you first need to download a set of weights that will initialize the convolutional layers from ImageNet.  To do so, call
 ```
@@ -180,13 +186,14 @@ bash scripts/download_model_init.sh
 
 Next, run:
 ```
-bash scripts/train.sh imagenet_folder imagenet_annotations_folder alov_videos_folder alov_annotations_folder
+DO NOT COMMIT
+bash scripts/train.sh tmp/ILSVRC2014/ILSVRC2014_DET_train_extracted/ tmp/ILSVRC2014/ILSVRC2014_DET_bbox_train tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full
 ```
-to train the tracker, where:
-imagenet_folder is the directory of ImageNet images
-imagenet_annotations_folder is the directory of Imagenet image annotations
-alov_videos_folder is the directory of ALOV videos
-alov_annotations_folder is the directory of ALOV video annotations.
+The parameters are in order:
+1. ImageNet images directory 
+1. Imagenet image annotations
+1. ALOV videos directory
+1. ALOV video annotations
  
 The tracker will be saved every 50,000 iterations in the folder: nets/solverstate
 We recommend to use the model after it has been trained for at least 200,000 iterations.  In our experiments, we trained our models for 450,000 iterations (which was probably overkill).  Still, you should be able to see some progress after just 50,000 iterations.
@@ -199,7 +206,7 @@ The detailed output of the training progress will be saved to a file in nets/res
 
 After downloading the ALOV video dataset that we use for training (see above), you can visualize this dataset by calling:
 ```
-build/show_alov alov_videos_folder alov_annotations_folder
+build/show_alov tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full
 ```
 where alov_videos_folder is the path to the ALOV videos folder and alov_annotations_folder is the path to the ALOV annotations folder.
 
@@ -207,6 +214,7 @@ where alov_videos_folder is the path to the ALOV videos folder and alov_annotati
 
 After downloading the ImageNet image dataset that we use for training (see above), you can visualize this dataset by calling:
 ```
+DO NOT COMMIT
 build/show_imagenet imagenet_folder imagenet_annotations_folder
 ```
 where imagenet_folder is the path to the ImageNet image folder and imagenet_annotations_folder is the path to the ImageNet annotations folder.

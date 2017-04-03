@@ -42,6 +42,17 @@ void Tracker::Init(const std::string& image_curr_path, const VOTRegion& region,
 
 void Tracker::Track(const cv::Mat& image_curr, RegressorBase* regressor,
                     BoundingBox* bbox_estimate_uncentered) {
+  // Pre-trained bbox weights are based on absense of rotation. That is, only
+  // translation is accumulated frame to frame, while rotation is recalculated
+  // entirely every frame.
+  // NOTE: when bbox and rotation layers are combined, the BoundingBox::Recenter
+  // ::Uncenter methods need to account for rotation and these lines can be removed
+  bbox_prev_tight_.rot_speed_ = 0.0;
+  bbox_curr_prior_tight_.rot_speed_ = 0.0;
+  std::cout << "TK::Track     - bbox rotations => 0.0\n";
+  std::cout << "TK::Track     - prev:            " << bbox_prev_tight_ << "\n";
+  std::cout << "TK::Track     - cur_prior_right: " << bbox_curr_prior_tight_ << "\n";
+
   // Get target from previous image.
   cv::Mat target_pad;
   CropPadImage(bbox_prev_tight_, image_prev_, &target_pad);
@@ -51,6 +62,7 @@ void Tracker::Track(const cv::Mat& image_curr, RegressorBase* regressor,
   BoundingBox search_location;
   double edge_spacing_x, edge_spacing_y;
   CropPadImage(bbox_curr_prior_tight_, image_curr, &curr_search_region, &search_location, &edge_spacing_x, &edge_spacing_y);
+  std::cout << "TK::Track     - search:          " << search_location << "\n";
 
   // Estimate the bounding box location of the target, centered and scaled relative to the cropped image.
   BoundingBox bbox_estimate;
@@ -62,6 +74,10 @@ void Tracker::Track(const cv::Mat& image_curr, RegressorBase* regressor,
 
   // Find the estimated bounding box location relative to the current crop.
   bbox_estimate_unscaled.Uncenter(image_curr, search_location, edge_spacing_x, edge_spacing_y, bbox_estimate_uncentered);
+  std::cout << "TK::Track     - estimate:        " << bbox_estimate << "\n";
+  std::cout << "TK::Track     - unscaled:        " << bbox_estimate_unscaled << "\n";
+  std::cout << "TK::Track     - uncentered:      " << *bbox_estimate_uncentered << "\n";
+  //CHECK(false);
 
   if (show_tracking_) {
     ShowTracking(target_pad, curr_search_region, bbox_estimate);
@@ -84,8 +100,10 @@ void Tracker::ShowTracking(const cv::Mat& target_pad, const cv::Mat& curr_search
   cv::resize(target_pad, target_resize, cv::Size(227, 227));
 
   // Show the resized target.
+#ifndef NO_DISPLAY
   cv::namedWindow("Target", cv::WINDOW_AUTOSIZE );// Create a window for display.
   cv::imshow("Target", target_resize );                   // Show our image inside it.
+#endif
 
   // Resize the image.
   cv::Mat image_resize;
@@ -100,7 +118,9 @@ void Tracker::ShowTracking(const cv::Mat& target_pad, const cv::Mat& curr_search
   image_resize.copyTo(image_with_box);
   bbox_estimate_unscaled.DrawBoundingBox(&image_with_box);
 
+#ifndef NO_DISPLAY
   cv::namedWindow("Estimate", cv::WINDOW_AUTOSIZE );// Create a window for display.
   cv::imshow("Estimate", image_with_box );                   // Show our image inside it.
   cv::waitKey(0);
+#endif
 }

@@ -1,0 +1,10 @@
+# .gitignore
+
+build/
+nets/models/
+nets/results/
+nets/solver_temp/
+nets/solverstate/
+nets/tracker_output/
+tmp/
+

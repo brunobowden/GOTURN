@@ -26,6 +26,7 @@ namespace {
 void train_image(const LoaderImagenetDet& image_loader,
            const std::vector<std::vector<Annotation> >& images,
            TrackerTrainer* tracker_trainer) {
+  //std::cout << "Train Image..." << std::endl;
   // Get a random image.
   const int image_num = rand() % images.size();
   const std::vector<Annotation>& annotations = images[image_num];
@@ -44,6 +45,7 @@ void train_image(const LoaderImagenetDet& image_loader,
 
 // Train on all annotated frames in the set of videos.
 void train_video(const std::vector<Video>& videos, TrackerTrainer* tracker_trainer) {
+  //std::cout << "Train Video..." << std::endl;
   // Get a random video.
   const int video_num = rand() % videos.size();
   const Video& video = videos[video_num];
@@ -92,7 +94,7 @@ int main (int argc, char *argv[]) {
               << " network.caffemodel train.prototxt val.prototxt"
               << " solver_file"
               << " lambda_shift lambda_scale min_scale max_scale"
-              << " gpu_id"
+              << " lambda_rotation gpu_id"
               << std::endl;
     return 1;
   }
@@ -113,6 +115,7 @@ int main (int argc, char *argv[]) {
   const double lambda_scale        = atof(argv[arg_index++]);
   const double min_scale           = atof(argv[arg_index++]);
   const double max_scale           = atof(argv[arg_index++]);
+  const double lambda_rotation     = atof(argv[arg_index++]);
   const int gpu_id          = atoi(argv[arg_index++]);
   const int random_seed          = atoi(argv[arg_index++]);
 
@@ -142,7 +145,7 @@ int main (int argc, char *argv[]) {
 
   // Create an ExampleGenerator to generate training examples.
   ExampleGenerator example_generator(lambda_shift, lambda_scale,
-                                     min_scale, max_scale);
+                                     min_scale, max_scale, lambda_rotation);
 
   // Set up network.
   RegressorTrain regressor_train(train_proto, caffe_model,

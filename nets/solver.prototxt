@@ -1,5 +1,13 @@
 net: "TRAIN_FILE"
-base_lr: 0.000001
+# DO NOT COMMIT - experimenting with different learning rates
+# base_lr: 0.00006
+# base_lr: 0.00003
+# base_lr: 0.00001
+# base_lr: 0.000003
+  base_lr: 0.000001  # ORIGINAL
+# base_lr: 0.0000003
+# base_lr: 0.000001  # Train bbox and rotation
+# base_lr: 0.000001  # Train bbox layers
 lr_policy: "step"
 gamma: 0.1
 stepsize: 100000
@@ -7,7 +15,8 @@ display: 20
 max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
-snapshot: 50000
+# DO NOT COMMIT
+snapshot: 10000
 snapshot_prefix: "SOLVERSTATE_DIR/caffenet_train"
 random_seed: RANDOM_SEED
 device_id: DEVICE_ID

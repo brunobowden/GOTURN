@@ -1,3 +1,6 @@
+// DO NOT COMMIT - hack to include CHECK definition
+#include "caffe/caffe.hpp"
+
 #include "image_proc.h"
 
 void ComputeCropPadImageLocation(const BoundingBox& bbox_tight, const cv::Mat& image, BoundingBox* pad_image_location) {
@@ -47,6 +50,7 @@ void ComputeCropPadImageLocation(const BoundingBox& bbox_tight, const cv::Mat& i
   pad_image_location->y1_ = roi_bottom;
   pad_image_location->x2_ = roi_left + roi_width;
   pad_image_location->y2_ = roi_bottom + roi_height;
+  pad_image_location->rot_speed_ = bbox_tight.rot_speed_;
 }
 
 void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image, cv::Mat* pad_image) {
@@ -55,8 +59,21 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image, cv::Mat* 
   CropPadImage(bbox_tight, image, pad_image, &pad_image_location, &edge_spacing_x, &edge_spacing_y);
 }
 
-void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image, cv::Mat* pad_image,
-                  BoundingBox* pad_image_location, double* edge_spacing_x, double* edge_spacing_y) {
+void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image,
+                  cv::Mat* pad_image, BoundingBox* pad_image_location,
+                  double* edge_spacing_x, double* edge_spacing_y) {
+
+  // Rotate image around bbox center, clockwise by rot_speed_
+  cv::Point center(bbox_tight.get_center_x(), bbox_tight.get_center_y());
+  cv::Mat rotationMat = cv::getRotationMatrix2D(center, -bbox_tight.rot_speed_, 1.0);
+  // NOTE: maybe negate rot_speed_ so that it matches OpenCV: +ve => counter clockwise
+  // http://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#getrotationmatrix2d
+  cv::Mat rotatedImg;
+  warpAffine(image, rotatedImg, rotationMat, cv::Size(image.cols, image.rows));
+  // http://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#warpaffine
+  // Ideally combine rotation, scale and crop in same operation to reduce work
+  // That said, it's still a small cost compared to forward and back propogation
+
   // Crop the image based on the bounding box location, adding some padding.
 
   // Get the location of the cropped and padded image.
@@ -65,12 +82,16 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image, cv::Mat* 
   // Compute the ROI, ensuring that the crop stays within the boundaries of the image.
   const double roi_left = std::min(pad_image_location->x1_, static_cast<double>(image.cols - 1));
   const double roi_bottom = std::min(pad_image_location->y1_, static_cast<double>(image.rows - 1));
-  const double roi_width = std::min(static_cast<double>(image.cols), std::max(1.0, ceil(pad_image_location->x2_ - pad_image_location->x1_)));
-  const double roi_height = std::min(static_cast<double>(image.rows), std::max(1.0, ceil(pad_image_location->y2_ - pad_image_location->y1_)));
+  const double roi_width = std::min(static_cast<double>(image.cols),
+      std::max(1.0, ceil(pad_image_location->x2_ - pad_image_location->x1_)));
+  const double roi_height = std::min(static_cast<double>(image.rows),
+      std::max(1.0, ceil(pad_image_location->y2_ - pad_image_location->y1_)));
+
 
   // Crop the image based on the ROI.
   cv::Rect myROI(roi_left, roi_bottom, roi_width, roi_height);
-  cv::Mat cropped_image = image(myROI);
+  // ORIGINAL cv::Mat cropped_image = image(myROI);
+  cv::Mat cropped_image = rotatedImg(myROI);
 
   // Now we need to place the crop in a new image of the appropriate size,
   // adding a black border where necessary to account for edge effects.
@@ -87,6 +108,7 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image, cv::Mat* 
 
   // Get the amount that the output "sticks out" beyond the left and bottom edges of the image.
   // This might be 0, but it might be > 0 if the output is near the edge of the image.
+  // NOTE: with rotation this could be slightly inaccurate but might still be 0
   *edge_spacing_x = std::min(bbox_tight.edge_spacing_x(), static_cast<double>(output_image.cols - 1));
   *edge_spacing_y = std::min(bbox_tight.edge_spacing_y(), static_cast<double>(output_image.rows - 1));
 
@@ -102,5 +124,21 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image, cv::Mat* 
 
   // Set the output.
   *pad_image = output_image;
+
+#if 0
+  std::cout << "IP::CropPI    - bbox_tight: " << bbox_tight << "\n";
+  //std::cout << "IP::CropPI    - rotMat: " << rotationMat << "\n";
+  std::cout << "IP::CropPI    - output_rect: " << output_rect << "\n";
+  // prefix image filename to sequence them
+  cv::imwrite("nets/ignore/a-image.jpg", image);
+  cv::imwrite("nets/ignore/b-rotatedImg.jpg", rotatedImg);
+  cv::imwrite("nets/ignore/c-cropped.jpg", cropped_image);
+  cv::imwrite("nets/ignore/d-output_image.jpg", output_image);
+  cv::imwrite("nets/ignore/e-pad_image.jpg", *pad_image);
+  std::cout << "IP::CropPI    - Wrote Images in nets/ignore \n";
+  if (fabs(bbox_tight.rot_speed_) >= 10.0) {
+      CHECK(false);
+  }
+#endif
 }
 

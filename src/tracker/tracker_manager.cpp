@@ -38,8 +38,19 @@ void TrackerManager::TrackAll(const size_t start_video_num, const int pause_val)
     tracker_->Init(image_curr, bbox_gt, regressor_);
 
     // Iterate over the remaining frames of the video.
-    for (size_t frame_num = first_frame + 1; frame_num < video.all_frames.size(); ++frame_num) {
-
+    // Prints first, last and %100 frame numbers
+    size_t frame_num = first_frame + 1;
+    printf("Frames: %zu", frame_num);
+    printf("\n"); // DO NOT COMMIT
+    for (; frame_num < video.all_frames.size(); ++frame_num) {
+      //if (frame_num % 100 == 0) {
+      //CHECK(frame_num != 3);
+      if (frame_num % 1 == 0) {
+          // force flush as printf without newline will buffer
+          //printf(", %zu", frame_num);
+          printf("Frame: %zu - \n", frame_num);
+          fflush(stdout);
+      }
       // Get image for the current frame.
       // (The ground-truth bounding box is used only for visualization).
       const bool draw_bounding_box = false;
@@ -63,6 +74,8 @@ void TrackerManager::TrackAll(const size_t start_video_num, const int pause_val)
       ProcessTrackOutput(frame_num, image_curr, has_annotation, bbox_gt,
                            bbox_estimate_uncentered, pause_val);
     }
+    printf(", %zu\n", frame_num);
+
     PostProcessVideo();
   }
   PostProcessAll();
@@ -88,14 +101,17 @@ void TrackerVisualizer::ProcessTrackOutput(
   }
 
   // Draw estimated bounding box of the target location (red).
-  bbox_estimate_uncentered.Draw(255, 0, 0, &full_output);
+  bbox_estimate_uncentered.Draw(255, 0, 0, true, &full_output);
 
+#ifndef NO_DISPLAY
+  // TODO: disable GUI automatically at runtime rather than compile time
   // Show the image with the estimated and ground-truth bounding boxes.
   cv::namedWindow("Full output", cv::WINDOW_AUTOSIZE ); // Create a window for display.
   cv::imshow("Full output", full_output );                   // Show our image inside it.
 
   // Pause for pause_val milliseconds, or until user input (if pause_val == 0).
   cv::waitKey(pause_val);
+#endif
 }
 
 void TrackerVisualizer::VideoInit(const Video& video, const size_t video_num) {
@@ -180,7 +196,7 @@ void TrackerTesterAlov::ProcessTrackOutput(
     }
 
     // Draw estimated bounding box on image (red).
-    bbox_estimate.Draw(255, 0, 0, &full_output);
+    bbox_estimate.Draw(255, 0, 0, true, &full_output);
 
     // Save the image to a tracking video.
     video_writer_.write(full_output);

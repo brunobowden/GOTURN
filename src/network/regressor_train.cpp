@@ -40,7 +40,8 @@ void RegressorTrain::set_bboxes_gt(const std::vector<BoundingBox>& bboxes_gt) {
   // Reshape the bbox.
   Blob<float>* input_bbox = net_->input_blobs()[2];
   const size_t num_images = bboxes_gt.size();
-  const int bbox_dims = 4;
+  // DO NOT COMMIT
+  const int bbox_dims = 5;
   vector<int> shape;
   shape.push_back(num_images);
   shape.push_back(bbox_dims);
@@ -49,14 +50,50 @@ void RegressorTrain::set_bboxes_gt(const std::vector<BoundingBox>& bboxes_gt) {
   // Get a pointer to the bbox memory.
   float* input_bbox_data = input_bbox->mutable_cpu_data();
 
+  static int d0p00 = 0;
+  static int d0p01 = 0;
+  static int d0p03 = 0;
+  static int d0p10 = 0;
+  static int d0p30 = 0;
+  static int d1p00 = 0;
+
   int input_bbox_data_counter = 0;
   for (size_t i = 0; i < bboxes_gt.size(); ++i) {
     const BoundingBox& bbox_gt = bboxes_gt[i];
 
+#if 0
+  // rot_speed_ distribution tracking
+    std::cout << "BB::bbox_gt   - bboxes_gt["
+        << std::setw(2) << std::right << i << "]:   " << bbox_gt << "\n";
+    const double diff = fabs(bbox_gt.rot_speed_ - 5.0);
+    if (diff > 1.0) {
+      ++d1p00;
+    } else if (diff > 0.3) {
+      ++d0p30;
+    } else if (diff > 0.1) {
+      ++d0p10;
+    } else if (diff > 0.03) {
+      ++d0p03;
+    } else if (diff > 0.01) {
+      ++d0p01;
+    } else {
+      ++d0p00;
+    }
+    std::cout << "RT::bbox_gt   - distribution:    "
+        << "40d: " << d1p00
+        << ", 11d: " << d0p30
+        << ", 3d: " << d0p10
+        << ", 1.1d: " << d0p03
+        << ", 0.4d: " << d0p01
+        << ", 0d: " << d0p00
+        << "\n";
+#endif
+
     // Set the bbox data to the ground-truth bbox.
     std::vector<float> bbox_vect;
     bbox_gt.GetVector(&bbox_vect);
-    for (size_t j = 0; j < 4; ++j) {
+    CHECK_EQ(bbox_dims, bbox_vect.size());
+    for (size_t j = 0; j < bbox_dims; ++j) {
       input_bbox_data[input_bbox_data_counter] = bbox_vect[j];
       input_bbox_data_counter++;
     }
