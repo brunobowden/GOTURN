@@ -18,7 +18,7 @@ input_dim: 227
 
 #bbox
 input_dim: 1
-input_dim: 4
+input_dim: 5  # bbox and rotation
 input_dim: 1
 input_dim: 1
 
@@ -487,11 +487,11 @@ layer {
   bottom: "pool5_concat"
   top: "fc6"
   param {
-    lr_mult: 10
+    lr_mult: 0
     decay_mult: 1
   }
   param {
-    lr_mult: 20
+    lr_mult: 0
     decay_mult: 0
   }
   inner_product_param {
@@ -527,11 +527,11 @@ layer {
   bottom: "fc6"
   top: "fc7"
   param {
-    lr_mult: 10
+    lr_mult: 0
     decay_mult: 1
   }
   param {
-    lr_mult: 20
+    lr_mult: 0
     decay_mult: 0
   }
   inner_product_param {
@@ -567,11 +567,11 @@ layer {
   bottom: "fc7"
   top: "fc7b"
   param {
-    lr_mult: 10
+    lr_mult: 0
     decay_mult: 1
   }
   param {
-    lr_mult: 20
+    lr_mult: 0
     decay_mult: 0
   }
   inner_product_param {
@@ -609,11 +609,11 @@ layer {
   bottom: "fc7b"
   top: "fc8"
   param {
-    lr_mult: 10
+    lr_mult: 0
     decay_mult: 1
   }
   param {
-    lr_mult: 20
+    lr_mult: 0
     decay_mult: 0
   }
   inner_product_param {
@@ -629,6 +629,195 @@ layer {
   }
 }
 
+# Rotation Layers
+# This is to predict rotation speed. The easiest change would be to modify
+# num_output from "fc8-shapes" to 5, then retrain the bounding box and
+# rotation parameters together. Instead the rotation output is generated
+# through a distinct and parallel set of layers for the following reasons:
+# 1) Avoid "change one thing, change everything" for safer experimentation
+# 2) Easy loading of existing weights as bbox layers are preserved
+#
+# The lr_mult and decay_mult values are reused from the bbox layers.
+# The bbox layers have learning disabled (lr_mult: 0) so that training
+# is only done on the rotation layers.
+#
+# The rotation layers are named the same as the shapes layers but with a
+# "-rot" suffix. This allows reuse of the mental model from the shapes layer
+# whilst being clearly distinct. The num_output of 4k, 4k & 1k are likely
+# excessive for predicting a single output. The goal is first to get the
+# system working and then improve performance.
+#
+# TODO:
+# A) Consolidate the layers back together to reduce computational overhead,
+# then increase num_outputs of "fc8-shapes" to output both features.
+# B) Retrain the network to maintain the existing bbox accuracy and
+# a sufficient accuracy for the retained rotation features.
+# C) If if it isn't possible to get the required accuracy, consider increasing
+# increasing the size of the fully connected layers to compensate for
+# generating the additional rotation feature.
+
+layer {
+  name: "fc6-new-rot"
+  type: "InnerProduct"
+  bottom: "pool5_concat"
+  top: "fc6-rot"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu6-rot"
+  type: "ReLU"
+  bottom: "fc6-rot"
+  top: "fc6-rot"
+}
+layer {
+  name: "drop6-rot"
+  type: "Dropout"
+  bottom: "fc6-rot"
+  top: "fc6-rot"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc7-new-rot"
+  type: "InnerProduct"
+  bottom: "fc6-rot"
+  top: "fc7-rot"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu7-rot"
+  type: "ReLU"
+  bottom: "fc7-rot"
+  top: "fc7-rot"
+}
+layer {
+  name: "drop7-rot"
+  type: "Dropout"
+  bottom: "fc7-rot"
+  top: "fc7-rot"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+layer {
+  name: "fc7-newb-rot"
+  type: "InnerProduct"
+  bottom: "fc7-rot"
+  top: "fc7b-rot"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 4096
+    weight_filler {
+      type: "gaussian"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 1
+    }
+  }
+}
+layer {
+  name: "relu7b-rot"
+  type: "ReLU"
+  bottom: "fc7b-rot"
+  top: "fc7b-rot"
+}
+layer {
+  name: "drop7b-rot"
+  type: "Dropout"
+  bottom: "fc7b-rot"
+  top: "fc7b-rot"
+  dropout_param {
+    dropout_ratio: 0.5
+  }
+}
+
+layer {
+  name: "fc8-rot"
+  type: "InnerProduct"
+  bottom: "fc7b-rot"
+  top: "fc8-rot"
+  param {
+    lr_mult: 10
+    decay_mult: 1
+  }
+  param {
+    lr_mult: 20
+    decay_mult: 0
+  }
+  inner_product_param {
+    num_output: 1  # rotation only
+    weight_filler {
+      type: "gaussian"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+
+# bbox and rotation concatenation
+layer {
+  name: "fc8-bbox-rot-concat"
+  type: "Concat"
+  # TODO: check concatenation order matches BoundingBox::GetVector
+  bottom: "fc8"
+  bottom: "fc8-rot"
+  top: "fc8-bbox-rot-concat"
+  concat_param {
+    axis: 1
+  }
+}
+
+# TODO: more readable version for negating a layer?
+# Power layer with scale: -1 is a nice trick but hard to read
 layer {
   name: "neg"
   bottom: "bbox"
@@ -650,10 +839,12 @@ layer {
 layer {
   name: "subtract"
   type: "Eltwise"
-  bottom: "fc8"
+  bottom: "fc8-bbox-rot-concat"  # train bbox and rotation
+  # bottom: "fc8-rot"  # train just rotation
   bottom: "bbox_neg_flat"
   top: "out_diff"
 }
+
 layer {
   name: "abssum"
   type: "Reduction"

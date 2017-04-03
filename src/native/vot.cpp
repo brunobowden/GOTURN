@@ -234,7 +234,12 @@ vot_region* VOT_PREFIX(vot_initialize)() {
     size_t linesiz = sizeof(char) * VOT_READ_BUFFER;
     char* linebuf = (char*) malloc(sizeof(char) * VOT_READ_BUFFER);
 
-    getline(&linebuf, &linesiz, inputfile);
+    int ret = getline(&linebuf, &linesiz, inputfile);
+    // DO NOT COMMIT - fixes build warning of unused return value, needs checking
+    if (ret != 0) {
+      fprintf(stderr, "Initial region file (region.txt), can't read file. Stopping.\n");
+      exit(-1);
+    }
     vot_region* region = _parse_region(linebuf);
 
     fclose(inputfile);

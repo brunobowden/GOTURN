@@ -14,6 +14,7 @@ struct BBParams {
   double lambda_scale;
   double min_scale;
   double max_scale;
+  double lambda_rotation;
 };
 
 // Generates additional training examples by taking random crops of the target object,
@@ -22,7 +23,7 @@ class ExampleGenerator
 {
 public:
   ExampleGenerator(const double lambda_shift, const double lambda_scale,
-                   const double min_scale, const double max_scale);
+                   const double min_scale, const double max_scale, const double lambda_rotation);
 
   // Set up to train on the previous and current image, and the previous and current bounding boxes.
   void Reset(const BoundingBox& bbox_prev, const BoundingBox& bbox_curr,
@@ -76,6 +77,8 @@ private:
   double min_scale_;
   double max_scale_;
 
+  double lambda_rotation_;
+    
   // Current training image.
   cv::Mat image_curr_;
 

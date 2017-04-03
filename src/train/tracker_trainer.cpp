@@ -40,6 +40,14 @@ void TrackerTrainer::MakeTrainingExamples(std::vector<cv::Mat>* images,
   // Generate additional training examples through synthetic transformations.
   example_generator_->MakeTrainingExamples(kGeneratedExamplesPerImage, images,
                                            targets, bboxes_gt_scaled);
+
+  // DO NOT COMMIT
+  /*std::cout << "TT::MTE: orientations: ";
+  for(std::vector<BoundingBox>::const_iterator iter = bboxes_gt_scaled->begin();
+      iter != bboxes_gt_scaled->end(); ++iter) {
+    std::cout << iter->rot_speed_ << ", ";
+  }
+  std::cout << std::endl;*/
 }
 
 void TrackerTrainer::ProcessBatch() {

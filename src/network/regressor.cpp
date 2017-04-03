@@ -2,6 +2,7 @@
 
 #include "helper/high_res_timer.h"
 
+
 // Credits:
 // This file was mostly taken from:
 // https://github.com/BVLC/caffe/tree/master/examples/cpp_classification
@@ -64,8 +65,18 @@ void Regressor::SetupNetwork(const string& deploy_proto,
     printf("Not initializing network from pre-trained model\n");
   }
 
-  //CHECK_EQ(net_->num_inputs(), num_inputs_) << "Network should have exactly " << num_inputs_ << " inputs.";
-  CHECK_EQ(net_->num_outputs(), 1) << "Network should have exactly one output.";
+  // DO NOT COMMIT
+  for(int i = 0; i < net_->input_blobs().size(); ++i) {
+    std::cout << "input_blobs[" << i << "]: " <<
+        net_->input_blobs()[i]->shape_string() << std::endl;
+  }
+  for(int i = 0; i < net_->output_blobs().size(); ++i) {
+    std::cout << "output_blobs[" << i << "]: " <<
+        net_->output_blobs()[i]->shape_string() << std::endl;
+  }
+
+  CHECK_EQ(3, net_->num_inputs()) << "Network should have exactly 3 inputs.";
+  CHECK_EQ(1, net_->num_outputs()) << "Network should have exactly 1 output.";
 
   Blob<float>* input_layer = net_->input_blobs()[0];
 
@@ -119,7 +130,8 @@ void Regressor::Estimate(const cv::Mat& image, const cv::Mat& target, std::vecto
                        input_geometry_.height, input_geometry_.width);
 
   Blob<float>* input_bbox = net_->input_blobs()[2];
-  input_bbox->Reshape(1, 4, 1, 1);
+  // rotation
+  input_bbox->Reshape(1, 5, 1, 1);
 
   // Forward dimension change to all layers.
   net_->Reshape();
@@ -170,6 +182,19 @@ void Regressor::GetFeatures(const string& feature_name, std::vector<float>* outp
   const float* begin = layer->cpu_data();
   const float* end = begin + num_elements;
   *output = std::vector<float>(begin, end);
+
+  // DO NOT COMMIT
+  // Print occasional layer information to see feed forward output
+  static int x = 0;
+  ++x;
+  if (x % 1000 == 0) {
+    // Start with newline as it appears interspersed with the frame counts
+    std::cout << "\nLayer: " << feature_name << ", cnt: " << num_elements << " - ";
+    for (int i = 0; i < 10 && i < num_elements; ++i) {
+      std::cout << (*output)[i] << ", ";
+    }
+    std::cout << std::endl;
+  }
 }
 
 void Regressor::SetImages(const std::vector<cv::Mat>& images,
@@ -213,7 +238,30 @@ void Regressor::Estimate(const std::vector<cv::Mat>& images,
 
 void Regressor::GetOutput(std::vector<float>* output) {
   // Get the fc8 output features of the network (this contains the estimated bounding box).
-  GetFeatures("fc8", output);
+  // GetFeatures("fc8-rot", output);
+  GetFeatures("fc8-bbox-rot-concat", output);
+  /*std::cout << "fc8-bbox-rot-concat: " <<
+      (*output)[0] << ", " << (*output)[1] << ", " <<
+      (*output)[2] << ", " << (*output)[3] << ", " <<
+      (*output)[4] << ", " << std::endl;
+      */
+
+  // Outputs
+    /*
+  std::vector<float> ignore;
+  GetFeatures("fc6", &ignore);
+  GetFeatures("fc6-rot", &ignore);
+  GetFeatures("fc7", &ignore);
+  GetFeatures("fc7-rot", &ignore);
+  GetFeatures("fc8", &ignore);
+  GetFeatures("fc8-rot", &ignore);
+
+  // Weights??
+  GetFeatures("fc6-new", &ignore);
+  GetFeatures("fc6-new-rot", &ignore);
+  GetFeatures("fc7-new", &ignore);
+  GetFeatures("fc7-new-rot", &ignore);
+  */
 }
 
 // Wrap the input layer of the network in separate cv::Mat objects

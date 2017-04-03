@@ -15,8 +15,15 @@ class BoundingBox
 {
 public:
   BoundingBox();
-  BoundingBox(const std::vector<float>& bounding_box);
-  BoundingBox(const VOTRegion& region);
+  // I encountered a bug because of trying to "std::cout <<" a "vector<float>".
+  // The compiler did a type conversion to BoundingBox to take advantage of the
+  // operator<< now defined for BoundingBox. This printed a BoundingBox when
+  // it was meant to be a vector<float>. The explicit keyword prevents this.
+  // It should be used on all single argument constructors as a precautionary
+  // measure to avoid unintended use for type conversion.
+  // http://stackoverflow.com/questions/121162/what-does-the-explicit-keyword-mean-in-c/121163#121163
+  explicit BoundingBox(const std::vector<float>& bounding_box);
+  BoundingBox(const VOTRegion& region, float rot = 0.0);
 
   // Convert bounding box into a vector format.
   void GetVector(std::vector<float>* bounding_box) const;
@@ -28,7 +35,7 @@ public:
   void Print() const;
 
   // Draw a rectangle corresponding to this bbox with the given color.
-  void Draw(const int r, const int g, const int b, cv::Mat* image) const;
+  void Draw(const int r, const int g, const int b, bool showRotation, cv::Mat* image) const;
 
   // Draw a white rectangle corresponding to this bbox.
   void DrawBoundingBox(cv::Mat* figure_ptr) const;
@@ -41,7 +48,7 @@ public:
   void Unscale(const cv::Mat& image, BoundingBox* bbox_unscaled) const;
 
   // Compute location of bounding box relative to search region
-  // edge_spacing_x and edge_spacing_y is the spaving of the image within the search region to account for edge effects.
+  // edge_spacing_x and edge_spacing_y is the spacing of the image within the search region to account for edge effects.
   // *this should be the ground-truth bbox.
   void Recenter(const BoundingBox& search_location,
                 const double edge_spacing_x, const double edge_spacing_y,
@@ -55,7 +62,9 @@ public:
   // Shift the cropped region of the image to generate a new random training example.
   void Shift(const cv::Mat& image,
              const double lambda_scale_frac, const double lambda_shift_frac,
-             const double min_scale, const double max_scale,
+             // Unclear on what the "_frac" suffix means, "fractional" perhaps...
+             // appears to be the same value as lambda_scale, lambda_shift and so on
+             const double min_scale, const double max_scale, const double lambda_rotation_frac,
              const bool shift_motion_model,
              BoundingBox* bbox_rand) const;
 
@@ -85,8 +94,24 @@ public:
   // Bounding box coordiantes: top left, bottom right.
   double x1_, y1_, x2_, y2_;
 
+  // Clockwise object rotation speed in degrees per frame, not rotation
+  // of bbox itself. Likely more robust and accurate than orientation_
+  // but greater error if integrated over time.
+  double rot_speed_;
+
+  // DO NOT COMMIT
+  // Ignore for now but may experiment with later
+  // Clockwise orientation of object within bbox, not bbox orientation
+  // 0.0 => human standing, 180.0 => handstand, 90.0 => lying down, head to right
+  // This feature is likely to have a high degree of error, especially ambiguous
+  // case like the ball video, where there is no clear "upright" to the object
+  // double orientation_;
+
   // Factor to scale the bounding box coordinates before inputting into the neural net.
   double scale_factor_;
 };
+
+// Allows std::cout << bbox_object;
+std::ostream & operator<<(std::ostream &os, const BoundingBox& bbox);
 
 #endif // BOUNDING_BOX_H

@@ -40,7 +40,8 @@ void RegressorTrain::set_bboxes_gt(const std::vector<BoundingBox>& bboxes_gt) {
   // Reshape the bbox.
   Blob<float>* input_bbox = net_->input_blobs()[2];
   const size_t num_images = bboxes_gt.size();
-  const int bbox_dims = 4;
+  // DO NOT COMMIT
+  const int bbox_dims = 5;
   vector<int> shape;
   shape.push_back(num_images);
   shape.push_back(bbox_dims);
@@ -56,7 +57,9 @@ void RegressorTrain::set_bboxes_gt(const std::vector<BoundingBox>& bboxes_gt) {
     // Set the bbox data to the ground-truth bbox.
     std::vector<float> bbox_vect;
     bbox_gt.GetVector(&bbox_vect);
-    for (size_t j = 0; j < 4; ++j) {
+    CHECK_EQ(bbox_dims, bbox_vect.size());
+    // std::cout << "set_bboxes_gt: " << bbox_gt << std::endl;
+    for (size_t j = 0; j < bbox_dims; ++j) {
       input_bbox_data[input_bbox_data_counter] = bbox_vect[j];
       input_bbox_data_counter++;
     }

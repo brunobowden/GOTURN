@@ -17,12 +17,17 @@ const bool shift_motion_model = true;
 ExampleGenerator::ExampleGenerator(const double lambda_shift,
                                    const double lambda_scale,
                                    const double min_scale,
-                                   const double max_scale)
+                                   const double max_scale,
+                                   const double lambda_rotation)
   : lambda_shift_(lambda_shift),
     lambda_scale_(lambda_scale),
     min_scale_(min_scale),
-    max_scale_(max_scale)
+    max_scale_(max_scale),
+    lambda_rotation_(lambda_rotation)
 {
+  // DO NOT COMMIT
+  printf("lambda - shift: %lf, scale: %lf (min: %lf, max: %lf), rot: %lf\n",
+         lambda_shift_, lambda_scale_, min_scale_, max_scale_, lambda_rotation_);
 }
 
 void ExampleGenerator::Reset(const BoundingBox& bbox_prev,
@@ -47,6 +52,7 @@ void ExampleGenerator::MakeTrainingExamples(const int num_examples,
                                             std::vector<cv::Mat>* targets,
                                             std::vector<BoundingBox>* bboxes_gt_scaled) {
   for (int i = 0; i < num_examples; ++i) {
+    //std::cout << "\nEG::MTE       - START" << std::endl;
     cv::Mat image_rand_focus;
     cv::Mat target_pad;
     BoundingBox bbox_gt_scaled;
@@ -58,6 +64,7 @@ void ExampleGenerator::MakeTrainingExamples(const int num_examples,
     images->push_back(image_rand_focus);
     targets->push_back(target_pad);
     bboxes_gt_scaled->push_back(bbox_gt_scaled);
+    //std::cout << "EG::MTE end   - " << bbox_gt_scaled << std::endl;
   }
 }
 
@@ -90,6 +97,7 @@ void ExampleGenerator::get_default_bb_params(BBParams* default_params) const {
   default_params->lambda_shift = lambda_shift_;
   default_params->min_scale = min_scale_;
   default_params->max_scale = max_scale_;
+  default_params->lambda_rotation = lambda_rotation_;
 }
 
 void ExampleGenerator::MakeTrainingExampleBBShift(cv::Mat* image_rand_focus,
@@ -128,26 +136,39 @@ void ExampleGenerator::MakeTrainingExampleBBShift(const bool visualize_example,
                                                   cv::Mat* target_pad,
                                                   BoundingBox* bbox_gt_scaled) const {
   *target_pad = target_pad_;
+  //std::cout << "EG::MTEBB cgt - " << bbox_curr_gt_ << std::endl;
 
   // Randomly transform the current image (translation and scale changes).
   BoundingBox bbox_curr_shift;
   bbox_curr_gt_.Shift(image_curr_, bbparams.lambda_scale, bbparams.lambda_shift,
-                      bbparams.min_scale, bbparams.max_scale,
+                      bbparams.min_scale, bbparams.max_scale, bbparams.lambda_rotation,
                       shift_motion_model,
                       &bbox_curr_shift);
+  //std::cout << "EG::MTEBB sft - " << bbox_curr_shift << std::endl;
 
   // Crop the image based at the new location (after applying translation and scale changes).
   double edge_spacing_x, edge_spacing_y;
   BoundingBox rand_search_location;
+
+  // DO NOT COMMIT
+  // rotation
+  // Problem is that while the bbox has an "object rotation" and the image is rotated,
+  // the rotation of the bbox itself is ignored. The bbox rotation is complex and can't
+  // be programmatically generated from the ImageNet data, so it's ignored. This will
+  // result in a loss in accuracy but is considered the best trade off right now.
   CropPadImage(bbox_curr_shift, image_curr_, rand_search_region, &rand_search_location,
                &edge_spacing_x, &edge_spacing_y);
+  //std::cout << "EG::MTEBB rsl - " << rand_search_location << std::endl;
 
   // Find the shifted ground-truth bounding box location relative to the image crop.
   BoundingBox bbox_gt_recentered;
   bbox_curr_gt_.Recenter(rand_search_location, edge_spacing_x, edge_spacing_y, &bbox_gt_recentered);
+  //std::cout << "EG::MTEBB rec - " << bbox_gt_recentered << std::endl;
 
   // Scale the ground-truth bounding box relative to the random transformation.
   bbox_gt_recentered.Scale(*rand_search_region, bbox_gt_scaled);
+  //std::cout << "EG::MTEBB scl - " << *bbox_gt_scaled << std::endl;
+  //std::cout << "EG::MTEBB cgt - " << bbox_curr_gt_ << std::endl;
 
   if (visualize_example) {
     VisualizeExample(*target_pad, *rand_search_region, *bbox_gt_scaled);
@@ -162,8 +183,10 @@ void ExampleGenerator::VisualizeExample(const cv::Mat& target_pad,
   // Show resized target.
   cv::Mat target_resize;
   cv::resize(target_pad, target_resize, cv::Size(227,227));
+#ifndef NO_DISPLAY
   cv::namedWindow("Target object", cv::WINDOW_AUTOSIZE );// Create a window for display.
   cv::imshow("Target object", target_resize);                   // Show our image inside it.
+#endif
   if (save_images) {
     const string target_name = "Image" + num2str(video_index_) + "_" + num2str(frame_index_) + "target.jpg";
     cv::imwrite(target_name, target_resize);
@@ -176,15 +199,17 @@ void ExampleGenerator::VisualizeExample(const cv::Mat& target_pad,
   // Draw gt bbox.
   BoundingBox bbox_gt_unscaled;
   bbox_gt_scaled.Unscale(image_resize, &bbox_gt_unscaled);
-  bbox_gt_unscaled.Draw(0, 255, 0, &image_resize);
+  bbox_gt_unscaled.Draw(0, 255, 0, true, &image_resize);
 
   // Show image with bbox.
+#ifndef NO_DISPLAY
   cv::namedWindow("Search_region+gt", cv::WINDOW_AUTOSIZE );// Create a window for display.
   cv::imshow("Search_region+gt", image_resize );                   // Show our image inside it.
+  cv::waitKey(0);
+#endif
+
   if (save_images) {
     const string image_name = "Image" + num2str(video_index_) + "_" + num2str(frame_index_) + "image.jpg";
     cv::imwrite(image_name, image_resize);
   }
-
-  cv::waitKey(0);
 }

@@ -164,10 +164,12 @@ void LoaderImagenetDet::ShowImages() const {
     cv::Mat image;
     LoadImage(image_index, &image);
 
+#ifndef NO_DISPLAY
     // Display the image and wait for a keystroke to continue.
     cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
     cv::imshow( "Display window", image );                   // Show our image inside it.
     cv::waitKey(0);                                          // Wait for a keystroke in the window
+#endif
   }
 }
 
@@ -271,10 +273,12 @@ void LoaderImagenetDet::ShowAnnotations() const {
       // Draw the annotation on the image.
       bbox.DrawBoundingBox(&image);
 
+#ifndef NO_DISPLAY
       // Display the image with the annotation.
       cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
       cv::imshow( "Display window", image );                   // Show our image inside it.
       cv::waitKey(0);                                          // Wait for a keystroke in the window
+#endif
     }
   }
 }
@@ -360,9 +364,11 @@ void LoaderImagenetDet::ShowAnnotationsRand() const {
     cv::Mat image_copy;
     image.copyTo(image_copy);
     bbox.DrawBoundingBox(&image_copy);
+#ifndef NO_DISPLAY
     cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
     cv::imshow( "Display window", image_copy );                   // Show our image inside it.
     cv::waitKey(0);                                          // Wait for a keystroke in the window
+#endif
   }
 }
 
@@ -370,7 +376,7 @@ void LoaderImagenetDet::ShowAnnotationsShift() const {
   // Create an example generator with parameters for a large shift, so that this will be noticable.
   // This will be used to artificially shift the crops around the annotations, creating an
   // apparent motion (via translation and scale change).
-  ExampleGenerator example_generator(5, 5, -0.4, 0.4);
+  ExampleGenerator example_generator(5, 5, -0.4, 0.4, 30);
 
   const bool save_images = false;
 
@@ -388,9 +394,11 @@ void LoaderImagenetDet::ShowAnnotationsShift() const {
       // Show the full image with the bounding box annotation.
       cv::Mat image_copy;
       image.copyTo(image_copy);
-      bbox.Draw(0, 255, 0, &image_copy);
+      bbox.Draw(0, 255, 0, true, &image_copy);
+#ifndef NO_DISPLAY
       cv::namedWindow( "Display window", cv::WINDOW_AUTOSIZE );// Create a window for display.
       cv::imshow( "Display window", image_copy );                   // Show our image inside it.
+#endif
 
       // If desired, save this image with its annotation.
       if (save_images) {
