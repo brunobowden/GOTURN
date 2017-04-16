@@ -18,7 +18,7 @@ public:
   // Encountered a bug due to trying "std::cout <<" for a "vector<float>".
   // Compiler used implicit conversion of vector<float> to a BoundingBox to use
   // operator<< function for BoundingBox. This printed a BoundingBox when it
-  // was only a vector<float>. The explicit keyword prevents this.
+  // was a 20 element vector<float>. The explicit keyword prevents this.
   // Explicit should generally be used on all single argument constructors as a
   // precautionary measure to avoid bugs from unintended implicit conversions.
   // http://stackoverflow.com/questions/121162/what-does-the-explicit-keyword-mean-in-c/121163#121163
@@ -109,9 +109,8 @@ public:
   //  90.0 => human lying down, head to right
   // 180.0 => human handstand
   // This feature is likely to have a higher error than rot_speed_, especially
-  // ambiguous case like the ball video, where there is no clear "upright"
-  // but lower cumulative error if integrated over time in non-ambiguous cases.
-  // double orientation_;
+  // ambiguous case like the ball video, where there is no clear "upright".
+  // May have lower error compared to rot_speed_ being integrated over time.
 
   // Factor to scale the bounding box coordinates before inputting into the neural net.
   double scale_factor_;

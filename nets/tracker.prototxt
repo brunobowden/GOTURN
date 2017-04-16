@@ -885,7 +885,7 @@ layer {
   top: "loss"
   loss_weight: 1
   reduction_param {
-    # Absolute Sum
+    # Absolute Sum, L1 Norm
     operation: 2
   }
 }

@@ -129,16 +129,21 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image,
   std::cout << "IP::CropPI    - bbox_tight: " << bbox_tight << "\n";
   //std::cout << "IP::CropPI    - rotMat: " << rotationMat << "\n";
   std::cout << "IP::CropPI    - output_rect: " << output_rect << "\n";
+
+  static int cropIdx = 0
+  String filename = "nets/ignore/cpi" + std::to_string(cropIdx) + "-";
+
   // prefix image filename to sequence them
-  cv::imwrite("nets/ignore/a-image.jpg", image);
-  cv::imwrite("nets/ignore/b-rotatedImg.jpg", rotatedImg);
-  cv::imwrite("nets/ignore/c-cropped.jpg", cropped_image);
-  cv::imwrite("nets/ignore/d-output_image.jpg", output_image);
-  cv::imwrite("nets/ignore/e-pad_image.jpg", *pad_image);
+  cv::imwrite(filename + "a-image.jpg", image);
+  cv::imwrite(filename + "b-rotatedImg.jpg", rotatedImg);
+  cv::imwrite(filename + "c-cropped.jpg", cropped_image);
+  cv::imwrite(filename + "d-output_image.jpg", output_image);
+  cv::imwrite(filename + "e-pad_image.jpg", *pad_image);
   std::cout << "IP::CropPI    - Wrote Images in nets/ignore \n";
   if (fabs(bbox_tight.rot_speed_) >= 10.0) {
       CHECK(false);
   }
+  cropIdx++;
 #endif
 }
 

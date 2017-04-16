@@ -40,6 +40,7 @@ void train_image(const LoaderImagenetDet& image_loader,
   image_loader.LoadAnnotation(image_num, annotation_num, &image, &bbox);
 
   // Train on this example
+  std::cout << "TN::train_img - bbox:            " << bbox << "\n";
   tracker_trainer->Train(image, image, bbox, bbox);
 }
 
@@ -76,6 +77,8 @@ void train_video(const std::vector<Video>& videos, TrackerTrainer* tracker_train
   video.LoadAnnotation(annotation_index + 1, &frame_num_curr, &image_curr, &bbox_curr);
 
   // Train on this example
+  std::cout << "TN::train_vid - prev:            " << bbox_prev << "\n";
+  std::cout << "TN::train_vid - curr:            " << bbox_curr << "\n";
   tracker_trainer->Train(image_prev, image_curr, bbox_prev, bbox_curr);
 
   // Save

@@ -58,6 +58,9 @@ void TrackerTrainer::ProcessBatch() {
 
 void TrackerTrainer::Train(const cv::Mat& image_prev, const cv::Mat& image_curr,
                            const BoundingBox& bbox_prev, const BoundingBox& bbox_curr) {
+  std::cout << "TT::Train     - prev:            " << bbox_prev << "\n";
+  std::cout << "TT::Train     - curr:            " << bbox_curr << "\n";
+
   // Check that the saved batches are of appropriate dimensions.
   CHECK_EQ(images_batch_.size(), targets_batch_.size());
   CHECK_EQ(images_batch_.size(), bboxes_gt_scaled_batch_.size());

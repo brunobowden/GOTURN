@@ -240,13 +240,13 @@ void BoundingBox::Uncenter(const cv::Mat& raw_image,
   // NOTE: rotation should alter the x, y values. This needs to be fixed
   // before training will work with combined layers. Ok for now as only
   // rotation is being trained.
-  // TODO: Look at replacing all the coordinate match with matrix operations.
-  // The layered complexity of Scale / Unscale, Uncenter / Recenter, Crop, Padding
+  // TODO: Replace all the coordinate scalar math with matrix operations.
+  // The complexity of Scale / Unscale, Uncenter / Recenter, Crop, Padding,
   // Tight / Non-Tight BBoxs and the like is both necessary and convoluted.
   // Replacing all the coordinate math with matrix operations should streamline
-  // this, in part because rather than 4 lines for each individual coordinate,
-  // it should be a single line for a matrix multiplication. Unclear if this will
-  // present issues to some of the max / min logic.
+  // this. In part because rather than 4 lines for each individual coordinate,
+  // it should be a single line for a matrix multiplication. Unclear if this
+  // will present issues to some of the max / min logic.
   bbox_uncentered->x1_ = std::max(0.0, x1_ + search_location.x1_ - edge_spacing_x);
   bbox_uncentered->y1_ = std::max(0.0, y1_ + search_location.y1_ - edge_spacing_y);
   bbox_uncentered->x2_ = std::min(static_cast<double>(raw_image.cols), x2_ + search_location.x1_ - edge_spacing_x);
@@ -400,13 +400,13 @@ void BoundingBox::Shift(const cv::Mat& image,
   }
 
   // Rotation
-  // lambda_rotation_frac=12 => 1/12 of kRotationRange => +/- 15 degrees on average
+  // lambda_rotation_frac=12 => 1/12 of kRotationRange => +/- 15 degree average
   // clamped to -kRotationRange to +kRotationRange range
   double rotation = kRotationRange * max(-1.0, min(1.0, sample_exp_two_sided(lambda_rotation_frac)));
   // DO NOT COMMIT
   // See line 51 onwards in scripts/train.sh for a discussion on how to
-  // model the rotation distribution. Instead of 5% large rotations,
-  // use 50% to get faster training speed for large rotations during debugging
+  // model the rotation distribution. Instead of 5% large rotations, use
+  // 50% to get faster training speed for large rotations during debugging
   // Probably should be command line variable like LAMBDA_ROTATION
   if (sample_rand_uniform() < 0.5) {
     rotation /= 10.0;
@@ -420,7 +420,7 @@ void BoundingBox::Shift(const cv::Mat& image,
   // rotation == 0.0 or rotation == 180.0:
   //    padding_x = new_width / 2
   //    padding_y = new_height / 2
-  // rotation == 90.0:  (width and height are swapped for padding)
+  // rotation == 90.0:  (width and height are swapped)
   //    padding_x = new_height / 2
   //    padding_y = new_width / 2
   // The two 'fabs' are due to picking the outlier of 4 corners
