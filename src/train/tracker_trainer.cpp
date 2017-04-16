@@ -40,14 +40,15 @@ void TrackerTrainer::MakeTrainingExamples(std::vector<cv::Mat>* images,
   // Generate additional training examples through synthetic transformations.
   example_generator_->MakeTrainingExamples(kGeneratedExamplesPerImage, images,
                                            targets, bboxes_gt_scaled);
-
-  // DO NOT COMMIT
-  /*std::cout << "TT::MTE: orientations: ";
-  for(std::vector<BoundingBox>::const_iterator iter = bboxes_gt_scaled->begin();
-      iter != bboxes_gt_scaled->end(); ++iter) {
-    std::cout << iter->rot_speed_ << ", ";
+#if 0
+  std::cout << "TT::MTE       - generated:       ";
+  for(int i = 0; i < bboxes_gt_scaled->size(); i++) {
+    std::cout << (*bboxes_gt_scaled)[i].rot_speed_ << ", ";
+    (*bboxes_gt_scaled)[i].rot_speed_ *= -1.0;
   }
-  std::cout << std::endl;*/
+  std::cout << "\n";
+  //abort();
+#endif
 }
 
 void TrackerTrainer::ProcessBatch() {
@@ -58,8 +59,8 @@ void TrackerTrainer::ProcessBatch() {
 
 void TrackerTrainer::Train(const cv::Mat& image_prev, const cv::Mat& image_curr,
                            const BoundingBox& bbox_prev, const BoundingBox& bbox_curr) {
-  std::cout << "TT::Train     - prev:            " << bbox_prev << "\n";
-  std::cout << "TT::Train     - curr:            " << bbox_curr << "\n";
+  //std::cout << "TT::Train     - prev:            " << bbox_prev << "\n";
+  //std::cout << "TT::Train     - curr:            " << bbox_curr << "\n";
 
   // Check that the saved batches are of appropriate dimensions.
   CHECK_EQ(images_batch_.size(), targets_batch_.size());

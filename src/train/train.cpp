@@ -26,7 +26,7 @@ namespace {
 void train_image(const LoaderImagenetDet& image_loader,
            const std::vector<std::vector<Annotation> >& images,
            TrackerTrainer* tracker_trainer) {
-  //std::cout << "Train Image..." << std::endl;
+  //std::cout << "TN::train_image\n";
   // Get a random image.
   const int image_num = rand() % images.size();
   const std::vector<Annotation>& annotations = images[image_num];
@@ -40,13 +40,12 @@ void train_image(const LoaderImagenetDet& image_loader,
   image_loader.LoadAnnotation(image_num, annotation_num, &image, &bbox);
 
   // Train on this example
-  std::cout << "TN::train_img - bbox:            " << bbox << "\n";
   tracker_trainer->Train(image, image, bbox, bbox);
 }
 
 // Train on all annotated frames in the set of videos.
 void train_video(const std::vector<Video>& videos, TrackerTrainer* tracker_trainer) {
-  //std::cout << "Train Video..." << std::endl;
+  //std::cout << "TN::train_video\n";
   // Get a random video.
   const int video_num = rand() % videos.size();
   const Video& video = videos[video_num];
@@ -77,8 +76,6 @@ void train_video(const std::vector<Video>& videos, TrackerTrainer* tracker_train
   video.LoadAnnotation(annotation_index + 1, &frame_num_curr, &image_curr, &bbox_curr);
 
   // Train on this example
-  std::cout << "TN::train_vid - prev:            " << bbox_prev << "\n";
-  std::cout << "TN::train_vid - curr:            " << bbox_curr << "\n";
   tracker_trainer->Train(image_prev, image_curr, bbox_prev, bbox_curr);
 
   // Save
