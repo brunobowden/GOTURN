@@ -14,7 +14,9 @@ VIDEOS_FOLDER=$1
 # GPU_ID is 2nd cmd line parameter, defaults to 0
 GPU_ID=${2:-0}
 
-FOLDER=GOTURN${GPU_ID}_test
+# Used to specify source of weights, 3nd cmd line parameter, defaults to 0
+GPU_ID_WEIGHTS=${3:-0}
+
 
 DEPLOY_PROTO=nets/tracker.prototxt
 
@@ -22,10 +24,12 @@ DEPLOY_PROTO=nets/tracker.prototxt
 # Original
 # CAFFE_MODEL=nets/models/pretrained_model/tracker.caffemodel
 # Rotation:
-CAFFE_MODEL=nets/solverstate/GOTURN${GPU_ID}/caffenet_train_iter_50000.caffemodel
+# DO NOT COMMIT
+# TODO: take the weights with the latest timestamp
+CAFFE_MODEL=nets/solverstate/GOTURN${GPU_ID_WEIGHTS}/caffenet_train_iter_20000.caffemodel
 # CAFFE_MODEL=nets/solverstate/GOTURN0/caffenet_train_iter_80000.caffemodel
 
-OUTPUT_FOLDER=nets/tracker_output/$FOLDER
+OUTPUT_FOLDER=nets/tracker_output/GOTURN${GPU_ID_WEIGHTS}_test
 
 echo "Saving videos to " $OUTPUT_FOLDER
 

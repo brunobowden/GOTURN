@@ -97,5 +97,3 @@ build/train $VIDEOS_FOLDER_IMAGENET $ANNOTATIONS_FOLDER_IMAGENET $VIDEOS_FOLDER 
 
 # DO NOT COMMIT
 # bash scripts/train.sh tmp/ILSVRC2014/ILSVRC2014_DET_train_extracted/ tmp/ILSVRC2014/ILSVRC2014_DET_bbox_train tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full
-
-# build/train tmp/ILSVRC2014/ILSVRC2014_DET_train_extracted/ tmp/ILSVRC2014/ILSVRC2014_DET_bbox_train tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full nets/models/pretrained_model/tracker.caffemodel nets/tracker.prototxt nets/solver_temp/solver_temp_GOTURN1.prototxt 5 15 -0.4 0.4 24 0 800
