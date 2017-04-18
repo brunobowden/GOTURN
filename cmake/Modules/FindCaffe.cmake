@@ -18,8 +18,8 @@ find_library(Caffe_LIBRARIES NAMES caffe
   ${Caffe_DIR}/build/lib)
 # DO NOT COMMIT
 # Find the /usr/local/lib/libcaffe.so version
-set(Caffe_LIBRARIES /home/ubuntu/caffe-gpu/distribute/lib/libcaffe.so)
-# set(Caffe_LIBRARIES /home/ubuntu/pynb/caffe-gpu/.build_release/lib/libcaffe.so)
+# set(Caffe_LIBRARIES /home/ubuntu/caffe-gpu/distribute/lib/libcaffe.so)
+set(Caffe_LIBRARIES /home/ubuntu/pynb/caffe-gpu/.build_release/lib/libcaffe.so)
 
 message("Hint: ${Caffe_DIR}/build/lib")
 message("lib_dirs:${Caffe_LIBRARIES}")

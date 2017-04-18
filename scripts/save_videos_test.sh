@@ -7,7 +7,7 @@ if [ -z "$1" ]
     exit
 fi
 
-set -ex
+set -x
 
 
 VIDEOS_FOLDER=$1

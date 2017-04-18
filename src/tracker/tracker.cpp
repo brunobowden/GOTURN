@@ -49,9 +49,9 @@ void Tracker::Track(const cv::Mat& image_curr, RegressorBase* regressor,
   // ::Uncenter methods need to account for rotation and these lines can be removed
   bbox_prev_tight_.rot_speed_ = 0.0;
   bbox_curr_prior_tight_.rot_speed_ = 0.0;
-  std::cout << "TK::Track     - bbox rotations => 0.0\n";
+  //std::cout << "TK::Track     - bbox rotations => 0.0\n";
   std::cout << "TK::Track     - prev:            " << bbox_prev_tight_ << "\n";
-  std::cout << "TK::Track     - cur_prior_right: " << bbox_curr_prior_tight_ << "\n";
+  std::cout << "TK::Track     - cur_prior_tight: " << bbox_curr_prior_tight_ << "\n";
 
   // Get target from previous image.
   cv::Mat target_pad;

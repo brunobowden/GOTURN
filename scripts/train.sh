@@ -8,7 +8,7 @@ if [ -z "$4" ]
     exit
 fi
 
-set -ex
+set -x
 
 VIDEOS_FOLDER_IMAGENET=$1
 ANNOTATIONS_FOLDER_IMAGENET=$2

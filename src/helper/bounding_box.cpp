@@ -507,6 +507,7 @@ void BoundingBox::Shift(const cv::Mat& image,
   // Need to generate more extreme rotations, e.g. object upside down to
   // effectively train orientation. Only rot_speed is being trained for now.
   // bbox_rand->orientation_ = 0.0;
+  std::cout << "BB::Shift     - bbox_rand:       " << *bbox_rand << "\n";
 }
 
 std::ostream & operator<<(std::ostream &os, const BoundingBox& bbox) {
@@ -521,7 +522,7 @@ std::ostream & operator<<(std::ostream &os, const BoundingBox& bbox) {
       << std::setw(width) << std::right << bbox.y1_ << ", "
       << std::setw(width) << std::right << bbox.x2_ << ", "
       << std::setw(width) << std::right << bbox.y2_
-      << ", rot_speed: " << std::setprecision(2) << std::setw(width)
+      << ", rot_speed:" << std::setprecision(2) << std::setw(width+1)
       << std::right << bbox.rot_speed_;
 }
 

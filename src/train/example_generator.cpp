@@ -53,8 +53,8 @@ void ExampleGenerator::MakeTrainingExamples(const int num_examples,
                                             std::vector<BoundingBox>* bboxes_gt_scaled) {
   //std::cout << "\nEG::MTE       - num: " << num_examples << "\n";
   for (int i = 0; i < num_examples; ++i) {
-    //std::cout << "\nEG::MTE Start" << "\n";
-    //if (i == 5) { abort(); }
+    std::cout << "EG::MTE Start" << "\n";
+    // if (i == 2) { abort(); }
     cv::Mat image_rand_focus;
     cv::Mat target_pad;
     BoundingBox bbox_gt_scaled;
@@ -66,7 +66,7 @@ void ExampleGenerator::MakeTrainingExamples(const int num_examples,
     images->push_back(image_rand_focus);
     targets->push_back(target_pad);
     bboxes_gt_scaled->push_back(bbox_gt_scaled);
-    //std::cout << "EG::MTE end   - " << bbox_gt_scaled << std::endl;
+    std::cout << "EG::MTE end   - gt_scale:        " << bbox_gt_scaled << "\n";
   }
 }
 
@@ -74,8 +74,7 @@ void ExampleGenerator::MakeTrueExample(cv::Mat* curr_search_region,
                                        cv::Mat* target_pad,
                                        BoundingBox* bbox_gt_scaled) const {
 
-  //std::cout << "\n";
-  //std::cout << "EG::MTrue     - bbox_prev_gt_:   " << bbox_prev_gt_ << std::endl;
+  std::cout << "EG::MTrue     - bbox_prev_gt_:   " << bbox_prev_gt_ << std::endl;
   *target_pad = target_pad_;
 
   // Get a tight prior prediction of the target's location in the current image.
@@ -144,6 +143,7 @@ void ExampleGenerator::MakeTrainingExampleBBShift(const bool visualize_example,
 
   // Randomly transform the current image (translation and scale changes).
   BoundingBox bbox_curr_shift;
+  std::cout << "EG::MTEBBShft - curr_gt:         " << bbox_curr_gt_ << "\n";
   bbox_curr_gt_.Shift(image_curr_, bbparams.lambda_scale, bbparams.lambda_shift,
                       bbparams.min_scale, bbparams.max_scale, bbparams.lambda_rotation,
                       shift_motion_model,
@@ -161,9 +161,9 @@ void ExampleGenerator::MakeTrainingExampleBBShift(const bool visualize_example,
   // result in a loss in accuracy but is considered the best trade off right now.
   CropPadImage(bbox_curr_shift, image_curr_, rand_search_region, &rand_search_location,
                &edge_spacing_x, &edge_spacing_y);
-  //std::cout << "EG::MTEBB     - curr_gt:         " << bbox_curr_gt_ << std::endl;
-  //std::cout << "EG::MTEBB     - curr_shift:      " << bbox_curr_shift << std::endl;
-  //std::cout << "EG::MTEBB     - rand_search:     " << rand_search_location << std::endl;
+  std::cout << "EG::MTEBB     - curr_gt:         " << bbox_curr_gt_ << "\n";
+  std::cout << "EG::MTEBB     - curr_shift:      " << bbox_curr_shift << "\n";
+  std::cout << "EG::MTEBB     - rand_search:     " << rand_search_location << "\n";
 
   // Find the shifted ground-truth bounding box location relative to the image crop.
   BoundingBox bbox_gt_recentered;
@@ -171,9 +171,8 @@ void ExampleGenerator::MakeTrainingExampleBBShift(const bool visualize_example,
 
   // Scale the ground-truth bounding box relative to the random transformation.
   bbox_gt_recentered.Scale(*rand_search_region, bbox_gt_scaled);
-  //std::cout << "EG::MTEBB     - recentered:      " << bbox_gt_recentered << std::endl;
-  //std::cout << "EG::MTEBB     - scaled:          " << *bbox_gt_scaled << std::endl;
-  //std::cout << "EG::MTEBB     - curr_gt:         " << bbox_curr_gt_ << std::endl;    
+  std::cout << "EG::MTEBB     - recentered:      " << bbox_gt_recentered << "\n";
+  std::cout << "EG::MTEBB     - scaled:          " << *bbox_gt_scaled << "\n";
 
   if (visualize_example) {
     VisualizeExample(*target_pad, *rand_search_region, *bbox_gt_scaled);

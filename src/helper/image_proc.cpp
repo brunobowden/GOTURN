@@ -1,8 +1,5 @@
-// DO NOT COMMIT - hack to include CHECK definition
-#include "caffe/caffe.hpp"
-
 #include "image_proc.h"
-
+    
 void ComputeCropPadImageLocation(const BoundingBox& bbox_tight, const cv::Mat& image, BoundingBox* pad_image_location) {
   // Get the bounding box center.
   const double bbox_center_x = bbox_tight.get_center_x();
@@ -66,6 +63,7 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image,
   // Rotate image around bbox center, clockwise by rot_speed_
   cv::Point center(bbox_tight.get_center_x(), bbox_tight.get_center_y());
   cv::Mat rotationMat = cv::getRotationMatrix2D(center, -bbox_tight.rot_speed_, 1.0);
+  std::cout << "IP::CropPdImg - rotation:        " << bbox_tight.rot_speed_ << "\n";
   // NOTE: maybe negate rot_speed_ so that it matches OpenCV: +ve => counter clockwise
   // http://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#getrotationmatrix2d
   cv::Mat rotatedImg;
@@ -125,25 +123,22 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image,
   // Set the output.
   *pad_image = output_image;
 
-#if 0
-  std::cout << "IP::CropPI    - bbox_tight: " << bbox_tight << "\n";
-  //std::cout << "IP::CropPI    - rotMat: " << rotationMat << "\n";
-  std::cout << "IP::CropPI    - output_rect: " << output_rect << "\n";
+  std::cout << "IP::CropPdImg - bbox_tight:      " << bbox_tight << "\n";
+  std::cout << "IP::CropPdImg - output_rect:     " << output_rect << "\n";
 
-  static int cropIdx = 0
-  String filename = "nets/ignore/cpi" + std::to_string(cropIdx) + "-";
+#if 1
+  static int cropIdx = 0;
+  std::stringstream filename;
+  filename << "nets/ignore/CropPadImg-" << std::setfill('0') << std::setw(2) << std::right << cropIdx;
+  cropIdx++;
 
   // prefix image filename to sequence them
-  cv::imwrite(filename + "a-image.jpg", image);
-  cv::imwrite(filename + "b-rotatedImg.jpg", rotatedImg);
-  cv::imwrite(filename + "c-cropped.jpg", cropped_image);
-  cv::imwrite(filename + "d-output_image.jpg", output_image);
-  cv::imwrite(filename + "e-pad_image.jpg", *pad_image);
-  std::cout << "IP::CropPI    - Wrote Images in nets/ignore \n";
-  if (fabs(bbox_tight.rot_speed_) >= 10.0) {
-      CHECK(false);
-  }
-  cropIdx++;
+  cv::imwrite(filename.str() + "-a-image.jpg", image);
+  cv::imwrite(filename.str() + "-b-rotatedImg.jpg", rotatedImg);
+  cv::imwrite(filename.str() + "-c-cropped.jpg", cropped_image);
+  cv::imwrite(filename.str() + "-d-output_image.jpg", output_image);
+  cv::imwrite(filename.str() + "-e-pad_image.jpg", *pad_image);
+  std::cout << "IP::CropPdImg - Wrote Images in nets/ignore \n";
 #endif
 }
 

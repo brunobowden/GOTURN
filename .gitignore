@@ -1,5 +1,8 @@
 # .gitignore
 
+# DO NOT COMMIT - temp testing
+nets/ignore/
+
 build/
 nets/models/
 nets/results/
