@@ -7,8 +7,10 @@ if [ -z "$4" ]
     exit
 fi
 
-GPU_ID=0
-FOLDER=GOTURN1
+set -x
+
+GPU_ID=6
+FOLDER=GOTURN6
 RANDOM_SEED=800
 
 echo FOLDER: $FOLDER
@@ -45,4 +47,8 @@ MAX_SCALE=0.4
 echo LAMBDA_SCALE: $LAMBDA_SCALE
 echo LAMBDA_SHIFT: $LAMBDA_SHIFT
 
-build/train $VIDEOS_FOLDER_IMAGENET $ANNOTATIONS_FOLDER_IMAGENET $VIDEOS_FOLDER $ANNOTATIONS_FOLDER $CAFFE_MODEL $TRAIN_PROTO $SOLVER_TEMP $LAMBDA_SHIFT $LAMBDA_SCALE $MIN_SCALE $MAX_SCALE $GPU_ID $RANDOM_SEED 2> $RESULT_DIR/results.txt
+build/train $VIDEOS_FOLDER_IMAGENET $ANNOTATIONS_FOLDER_IMAGENET $VIDEOS_FOLDER $ANNOTATIONS_FOLDER $CAFFE_MODEL $TRAIN_PROTO $SOLVER_TEMP $LAMBDA_SHIFT $LAMBDA_SCALE $MIN_SCALE $MAX_SCALE $GPU_ID $RANDOM_SEED |& tee $RESULT_DIR/results.txt
+
+# bash scripts/train.sh tmp/ILSVRC2014/ILSVRC2014_DET_train_extracted/ tmp/ILSVRC2014/ILSVRC2014_DET_bbox_train tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full
+
+# build/train tmp/ILSVRC2014/ILSVRC2014_DET_train_extracted/ tmp/ILSVRC2014/ILSVRC2014_DET_bbox_train tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full nets/models/weights_init/tracker_init.caffemodel nets/tracker.prototxt nets/solver_temp/solver_temp_GOTURN6.prototxt 5 15 -0.4 0.4 6 800

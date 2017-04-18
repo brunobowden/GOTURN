@@ -7,7 +7,7 @@ display: 20
 max_iter: 450000
 momentum: 0.9
 weight_decay: 0.0005
-snapshot: 50000
+snapshot: 10000
 snapshot_prefix: "SOLVERSTATE_DIR/caffenet_train"
 random_seed: RANDOM_SEED
 device_id: DEVICE_ID
