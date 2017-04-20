@@ -3,6 +3,11 @@
 # DO NOT COMMIT - temp testing
 nets/ignore/
 
+#Files
+*~
+core
+
+# Directories
 build/
 nets/models/
 nets/results/
