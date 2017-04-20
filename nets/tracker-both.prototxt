@@ -812,12 +812,9 @@ layer {
   }
 }
 
-
-# bbox and rotation concatenation
 layer {
   name: "fc8-bbox-rot-concat"
   type: "Concat"
-  # Concat networks by uncommenting 
   bottom: "fc8"
   bottom: "fc8-rot"
   top: "fc8-bbox-rot-concat"
@@ -854,34 +851,10 @@ layer {
   top: "out_diff"
 }
 
-
-# Flexibility to limit loss to only rotation for training
-# slice_point 0: loss is bbox + rotation
-# slice_point 3: loss is only rotation (bbox is silenced)
-# TODO: check this works
-layer {
-  name: "out_diff_slice"
-  type: "Slice"
-  bottom: "out_diff"
-  top: "out_diff_slice_silenced"
-  top: "out_diff_slice_loss"
-  slice_param {
-    axis: 1
-    slice_point: 3
-  }
-}
-
-layer {
-  name: "out_diff_slice_silenced"
-  type: "Silence"
-  bottom: "out_diff_slice_silenced"
-}
-
 layer {
   name: "abssum"
   type: "Reduction"
-  # bottom: "out_diff"
-  bottom: "out_diff_slice_loss"
+  bottom: "out_diff"
   top: "loss"
   loss_weight: 1
   reduction_param {

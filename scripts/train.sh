@@ -1,19 +1,17 @@
 #!/bin/bash
 
-if [ -z "$4" ]
+if [ -z "$2" ]
   then
     echo "No folder supplied!"
-    echo "Usage: bash `basename "$0"` imagenet_folder imagenet_annotations_folder alov_videos_folder alov_annotations_folder [gpu_id]"
+    echo "Usage: bash `basename "$0"` imagenet_folder imagenet_annotations_folder [alov_videos_folder] [alov_annotations_folder] [gpu_id]"
     echo "GPU_ID defaults to 0. If specified, creates dedicated directory per GPU"
     exit
 fi
 
-set -x
-
 VIDEOS_FOLDER_IMAGENET=$1
 ANNOTATIONS_FOLDER_IMAGENET=$2
-VIDEOS_FOLDER=$3
-ANNOTATIONS_FOLDER=$4
+VIDEOS_FOLDER=${3:-tmp/alov/imagedata++}
+ANNOTATIONS_FOLDER=${4:-tmp/alov/alov300++_rectangleAnnotation_full}
 # GPU_ID is 5th cmd line parameter, defaults to 0
 GPU_ID=${5:-0}
 
@@ -23,14 +21,15 @@ echo FOLDER: $FOLDER
 
 SOLVER=nets/solver.prototxt
 TRAIN_PROTO=nets/tracker.prototxt
-# DO NOT COMMIT
-# CAFFE_MODEL=nets/models/weights_init/tracker_init.caffemodel
-# Start with pretrained weights and just focus on rotation training
 CAFFE_MODEL=nets/models/pretrained_model/tracker.caffemodel
 
-BASEDIR=nets
-RESULT_DIR=$BASEDIR/results/$FOLDER
-SOLVERSTATE_DIR=$BASEDIR/solverstate/$FOLDER
+# GOTURN TRAINING OK #
+TRAIN_PROTO=nets/tracker-both.prototxt
+CAFFE_MODEL=nets/models/weights_init/tracker_init.caffemodel
+# GOTURN TRAINING OK #
+
+RESULT_DIR=nets/results/$FOLDER
+SOLVERSTATE_DIR=nets/solverstate/$FOLDER
 
 #Make folders to store results and snapshots
 mkdir -p $RESULT_DIR
@@ -91,9 +90,14 @@ echo LAMBDA_SHIFT: $LAMBDA_SHIFT
 echo LAMBDA_ROTATION: $LAMBDA_ROTATION
 
 
-build/train $VIDEOS_FOLDER_IMAGENET $ANNOTATIONS_FOLDER_IMAGENET $VIDEOS_FOLDER $ANNOTATIONS_FOLDER $CAFFE_MODEL $TRAIN_PROTO $SOLVER_TEMP $LAMBDA_SHIFT $LAMBDA_SCALE $MIN_SCALE $MAX_SCALE $LAMBDA_ROTATION $GPU_ID $RANDOM_SEED |& tee $RESULT_DIR/results.txt
-# |&  - pipe both stdout and stderr to stdout
-# tee - output to console and write to results.txt
+# Train network
+CMD="build/train $VIDEOS_FOLDER_IMAGENET $ANNOTATIONS_FOLDER_IMAGENET $VIDEOS_FOLDER $ANNOTATIONS_FOLDER $CAFFE_MODEL $TRAIN_PROTO $SOLVER_TEMP $LAMBDA_SHIFT $LAMBDA_SCALE $MIN_SCALE $MAX_SCALE $LAMBDA_ROTATION $GPU_ID $RANDOM_SEED |& tee $RESULT_DIR/results.txt"
+echo Running: $CMD
+eval $CMD
+# |& redirect stdout and stderr to stdout
+# tee writes output to file and console
 
 # DO NOT COMMIT
 # bash scripts/train.sh tmp/ILSVRC2014/ILSVRC2014_DET_train_extracted/ tmp/ILSVRC2014/ILSVRC2014_DET_bbox_train tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full
+
+# build/train tmp/ILSVRC2014/ILSVRC2014_DET_train_extracted/ tmp/ILSVRC2014/ILSVRC2014_DET_bbox_train tmp/alov/imagedata++ tmp/alov/alov300++_rectangleAnnotation_full nets/models/pretrained_model/tracker.caffemodel nets/tracker.prototxt nets/solver_temp/solver_temp_GOTURN0.prototxt 5 15 -0.4 0.4 24 0 800

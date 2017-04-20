@@ -817,7 +817,6 @@ layer {
 layer {
   name: "fc8-bbox-rot-concat"
   type: "Concat"
-  # Concat networks by uncommenting 
   bottom: "fc8"
   bottom: "fc8-rot"
   top: "fc8-bbox-rot-concat"
