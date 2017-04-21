@@ -26,7 +26,7 @@ namespace {
 void train_image(const LoaderImagenetDet& image_loader,
            const std::vector<std::vector<Annotation> >& images,
            TrackerTrainer* tracker_trainer) {
-  std::cout << "TN::train_image\n";
+  //std::cout << "TN::train_image\n";
   // Get a random image.
   const int image_num = rand() % images.size();
   const std::vector<Annotation>& annotations = images[image_num];
@@ -45,7 +45,7 @@ void train_image(const LoaderImagenetDet& image_loader,
 
 // Train on all annotated frames in the set of videos.
 void train_video(const std::vector<Video>& videos, TrackerTrainer* tracker_trainer) {
-  std::cout << "TN::train_video\n";
+  //std::cout << "TN::train_video\n";
   // Get a random video.
   const int video_num = rand() % videos.size();
   const Video& video = videos[video_num];

@@ -23,7 +23,7 @@ const double kScaleFactor = 10;
 // Factor by which to scale the rotation per frame in BoundingBox::Draw
 // to make small rotations more discernable.
 // TODO: choose best value from experimentation
-const double kDrawRotSpeedScale = 10;
+const double kDrawRotSpeedScale = 1;
 const double kPI = 3.14159265;
 const double kDegToRad = kPI / 180.0;
 // Maximum range of rotation frame to frame, i.e. -180.0 .. +180.0
@@ -169,8 +169,8 @@ void BoundingBox::Unscale(const cv::Mat& image, BoundingBox* bbox_unscaled) cons
   // Scale to: -kRotationRange to +kRotationRange
   bbox_unscaled->rot_speed_ = (bbox_unscaled->rot_speed_ - 0.5) * 2.0 * kRotationRange;
 
-  std::cout << "BB::Recenter  - Unscale before:  " << *this << "\n";
-  std::cout << "BB::Recenter  - Unscale after:   " << *bbox_unscaled << "\n";
+  //std::cout << "BB::Recenter  - Unscale before:  " << *this << "\n";
+  //std::cout << "BB::Recenter  - Unscale after:   " << *bbox_unscaled << "\n";
 }
 
 double BoundingBox::compute_output_width() const {
@@ -254,7 +254,7 @@ void BoundingBox::Uncenter(const cv::Mat& raw_image,
   // Rotation
   bbox_uncentered->rot_speed_ = rot_speed_ + search_location.rot_speed_;
 
-#if 1
+#if 0
   std::cout << "BB::Uncenter  - this:            " << *this << "\n";
   std::cout << "BB::Uncenter  - search_location: " << search_location << "\n";
   std::cout << "BB::Uncenter  - uncentered:      " << *bbox_uncentered << "\n";
@@ -412,6 +412,10 @@ void BoundingBox::Shift(const cv::Mat& image,
     rotation /= 10.0;
   }
 
+  // ORIENTATION - should it be [) range?
+  // Uniform distribution: -kRotationRange to +kRotationRange range
+  rotation = kRotationRange * ((sample_rand_uniform() * 2.0) - 1.0);
+
   // DO NOT COMMIT
   //printf("lambda_rotation_frac: %lf, rotation: %lf\n",
   //         lambda_rotation_frac, rotation);
@@ -507,7 +511,7 @@ void BoundingBox::Shift(const cv::Mat& image,
   // Need to generate more extreme rotations, e.g. object upside down to
   // effectively train orientation. Only rot_speed is being trained for now.
   // bbox_rand->orientation_ = 0.0;
-  std::cout << "BB::Shift     - bbox_rand:       " << *bbox_rand << "\n";
+  //std::cout << "BB::Shift     - bbox_rand:       " << *bbox_rand << "\n";
 }
 
 std::ostream & operator<<(std::ostream &os, const BoundingBox& bbox) {

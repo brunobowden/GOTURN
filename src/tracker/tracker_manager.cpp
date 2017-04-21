@@ -19,14 +19,24 @@ void TrackerManager::TrackAll() {
   TrackAll(0, 1);
 }
 
-void TrackerManager::TrackAll(const size_t start_video_num, const int pause_val) {
+void TrackerManager::TrackAll(const size_t start_video_num, const int pause_val) { 
+
+  // DO NOT COMMIT
+  // Rotation videos at the start, so they're generated faster
+  // Particularly important on single GPU machines, where only CPU
+  // is available during training
+  int reordering[26] = {6, 11, 15, 0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14,
+                        16, 17, 18, 19, 20, 21, 22, 23, 24, 25};
+
   // Iterate over all videos and track the target object in each.
   for (size_t video_num = start_video_num; video_num < videos_.size(); ++video_num) {
+    int reordered_index = reordering[video_num];
+      
     // Get the video.
-    const Video& video = videos_[video_num];
+    const Video& video = videos_[reordered_index];
 
     // Perform any pre-processing steps on this video.
-    VideoInit(video, video_num);
+    VideoInit(video, reordered_index);
 
     // Get the first frame of this video with the initial ground-truth bounding box (to initialize the tracker).
     int first_frame;
@@ -41,14 +51,13 @@ void TrackerManager::TrackAll(const size_t start_video_num, const int pause_val)
     // Prints first, last and %100 frame numbers
     size_t frame_num = first_frame + 1;
     printf("Frames: %zu", frame_num);
-    printf("\n"); // DO NOT COMMIT
+    //printf("\n"); // DO NOT COMMIT
     for (; frame_num < video.all_frames.size(); ++frame_num) {
-      //if (frame_num % 100 == 0) {
-      //CHECK(frame_num != 3);
-      if (frame_num % 1 == 0) {
+      if (frame_num % 100 == 0) {
+      //if (frame_num % 1 == 0) {
           // force flush as printf without newline will buffer
-          //printf(", %zu", frame_num);
-          printf("Frame: %zu - \n", frame_num);
+          printf(", %zu", frame_num);
+          //printf("Frame: %zu - \n", frame_num);
           fflush(stdout);
       }
       // Get image for the current frame.

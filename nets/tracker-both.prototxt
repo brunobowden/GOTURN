@@ -848,13 +848,37 @@ layer {
   type: "Eltwise"
   bottom: "fc8-bbox-rot-concat"
   bottom: "bbox_neg_flat"
-  top: "out_diff"
+  top: "both_diff"
+}
+
+
+# Splice to separate bbox and rotation diffs
+layer {
+  name: "both_diff_slice"
+  type: "Slice"
+  bottom: "both_diff"
+  top: "bbox_diff"
+  top: "rot_diff"
+  slice_param {
+    axis: 1
+    slice_point: 4
+  }
+}
+
+# Silencing both layers allow either to be used for loss
+layer {
+  name: "silence"
+  type: "Silence"
+  bottom: "rot_diff"
+  bottom: "bbox_diff"
 }
 
 layer {
   name: "abssum"
   type: "Reduction"
-  bottom: "out_diff"
+  # bottom: "rot_diff"   # rotation loss
+  # bottom: "bbox_diff"  # bbox loss
+  bottom: "both_diff"  # rotation & bbox loss
   top: "loss"
   loss_weight: 1
   reduction_param {
@@ -862,4 +886,3 @@ layer {
     operation: 2
   }
 }
-

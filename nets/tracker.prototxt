@@ -850,37 +850,37 @@ layer {
   type: "Eltwise"
   bottom: "fc8-bbox-rot-concat"
   bottom: "bbox_neg_flat"
-  top: "out_diff"
+  top: "both_diff"
 }
 
 
-# Flexibility to limit loss to only rotation for training
-# slice_point 0: loss is bbox + rotation
-# slice_point 3: loss is only rotation (bbox is silenced)
-# TODO: check this works
+# Splice to separate bbox and rotation diffs
 layer {
-  name: "out_diff_slice"
+  name: "both_diff_slice"
   type: "Slice"
-  bottom: "out_diff"
-  top: "out_diff_slice_silenced"
-  top: "out_diff_slice_loss"
+  bottom: "both_diff"
+  top: "bbox_diff"
+  top: "rot_diff"
   slice_param {
     axis: 1
-    slice_point: 3
+    slice_point: 4
   }
 }
 
+# Silencing both layers allow either to be used for loss
 layer {
-  name: "out_diff_slice_silenced"
+  name: "silence"
   type: "Silence"
-  bottom: "out_diff_slice_silenced"
+  bottom: "rot_diff"
+  bottom: "bbox_diff"
 }
 
 layer {
   name: "abssum"
   type: "Reduction"
-  # bottom: "out_diff"
-  bottom: "out_diff_slice_loss"
+  bottom: "rot_diff"   # rotation loss
+  # bottom: "bbox_diff"  # bbox loss
+  # bottom: "both_diff"  # rotation & bbox loss
   top: "loss"
   loss_weight: 1
   reduction_param {

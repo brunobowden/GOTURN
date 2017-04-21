@@ -21,12 +21,12 @@ echo FOLDER: $FOLDER
 
 SOLVER=nets/solver.prototxt
 TRAIN_PROTO=nets/tracker.prototxt
+# Start with pretrained weights and just focus on rotation training
 CAFFE_MODEL=nets/models/pretrained_model/tracker.caffemodel
 
-# GOTURN TRAINING OK #
-TRAIN_PROTO=nets/tracker-both.prototxt
-CAFFE_MODEL=nets/models/weights_init/tracker_init.caffemodel
-# GOTURN TRAINING OK #
+# DO NOT COMMIT - train bbox and rotation
+# TRAIN_PROTO=nets/tracker-both.prototxt
+# CAFFE_MODEL=nets/models/weights_init/tracker_init.caffemodel
 
 RESULT_DIR=nets/results/$FOLDER
 SOLVERSTATE_DIR=nets/solverstate/$FOLDER

@@ -63,7 +63,7 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image,
   // Rotate image around bbox center, clockwise by rot_speed_
   cv::Point center(bbox_tight.get_center_x(), bbox_tight.get_center_y());
   cv::Mat rotationMat = cv::getRotationMatrix2D(center, -bbox_tight.rot_speed_, 1.0);
-  std::cout << "IP::CropPdImg - rotation:        " << bbox_tight.rot_speed_ << "\n";
+  //std::cout << "IP::CropPdImg - rotation:        " << bbox_tight.rot_speed_ << "\n";
   // NOTE: maybe negate rot_speed_ so that it matches OpenCV: +ve => counter clockwise
   // http://docs.opencv.org/2.4/modules/imgproc/doc/geometric_transformations.html#getrotationmatrix2d
   cv::Mat rotatedImg;
@@ -123,10 +123,10 @@ void CropPadImage(const BoundingBox& bbox_tight, const cv::Mat& image,
   // Set the output.
   *pad_image = output_image;
 
+#if 0
   std::cout << "IP::CropPdImg - bbox_tight:      " << bbox_tight << "\n";
   std::cout << "IP::CropPdImg - output_rect:     " << output_rect << "\n";
 
-#if 1
   static int cropIdx = 0;
   std::stringstream filename;
   filename << "nets/ignore/CropPadImg-" << std::setfill('0') << std::setw(2) << std::right << cropIdx;

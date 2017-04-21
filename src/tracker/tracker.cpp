@@ -49,9 +49,8 @@ void Tracker::Track(const cv::Mat& image_curr, RegressorBase* regressor,
   // ::Uncenter methods need to account for rotation and these lines can be removed
   bbox_prev_tight_.rot_speed_ = 0.0;
   bbox_curr_prior_tight_.rot_speed_ = 0.0;
-  //std::cout << "TK::Track     - bbox rotations => 0.0\n";
-  std::cout << "TK::Track     - prev:            " << bbox_prev_tight_ << "\n";
-  std::cout << "TK::Track     - cur_prior_tight: " << bbox_curr_prior_tight_ << "\n";
+  //std::cout << "TK::Track     - prev:            " << bbox_prev_tight_ << "\n";
+  //std::cout << "TK::Track     - cur_prior_tight: " << bbox_curr_prior_tight_ << "\n";
 
   // Get target from previous image.
   cv::Mat target_pad;
@@ -62,7 +61,7 @@ void Tracker::Track(const cv::Mat& image_curr, RegressorBase* regressor,
   BoundingBox search_location;
   double edge_spacing_x, edge_spacing_y;
   CropPadImage(bbox_curr_prior_tight_, image_curr, &curr_search_region, &search_location, &edge_spacing_x, &edge_spacing_y);
-  std::cout << "TK::Track     - search:          " << search_location << "\n";
+  //std::cout << "TK::Track     - search:          " << search_location << "\n";
 
   // Estimate the bounding box location of the target, centered and scaled relative to the cropped image.
   BoundingBox bbox_estimate;
@@ -74,9 +73,9 @@ void Tracker::Track(const cv::Mat& image_curr, RegressorBase* regressor,
 
   // Find the estimated bounding box location relative to the current crop.
   bbox_estimate_unscaled.Uncenter(image_curr, search_location, edge_spacing_x, edge_spacing_y, bbox_estimate_uncentered);
-  std::cout << "TK::Track     - estimate:        " << bbox_estimate << "\n";
-  std::cout << "TK::Track     - unscaled:        " << bbox_estimate_unscaled << "\n";
-  std::cout << "TK::Track     - uncentered:      " << *bbox_estimate_uncentered << "\n";
+  //std::cout << "TK::Track     - estimate:        " << bbox_estimate << "\n";
+  //std::cout << "TK::Track     - unscaled:        " << bbox_estimate_unscaled << "\n";
+  //std::cout << "TK::Track     - uncentered:      " << *bbox_estimate_uncentered << "\n";
   //CHECK(false);
 
   if (show_tracking_) {

@@ -123,7 +123,7 @@ void RegressorTrain::Train(const std::vector<cv::Mat>& images,
   // Train the network.
   Step();
 
-#if 1
+#if 0
   std::cout << "RT::traindata - images...\n";
   for (int i = 0; i < images.size(); i++) {
     std::cout << "RT::traindata - bboxes_gt:       "
@@ -136,7 +136,6 @@ void RegressorTrain::Train(const std::vector<cv::Mat>& images,
     cv::imwrite(filenameStr + "-target.jpg", targets[i]);
   }
   std::cout << "RT::traindata - images done\n";
-  abort();
 #endif
 }
 

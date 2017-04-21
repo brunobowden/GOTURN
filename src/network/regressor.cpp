@@ -192,7 +192,7 @@ void Regressor::GetFeatures(const string& feature_name, std::vector<float>* outp
   ++x;
   if (x % 1 == 0) {
     // DO NOT COMMIT
-    std::cout << "RG::GetFtrs " << feature_name << ": " << std::setprecision(5);
+    std::cout << "\nRG::GetFtrs " << feature_name << ": " << std::setprecision(5);
     for (int i = 0; i < 10 && i < num_elements; ++i) {
       std::cout << (*output)[i] << ", ";
     }
@@ -244,28 +244,6 @@ void Regressor::GetOutput(std::vector<float>* output) {
   // Get the fc8 output features of the network (this contains the estimated bounding box).
   // GetFeatures("fc8-rot", output);
   GetFeatures("fc8-bbox-rot-concat", output);
-  /*std::cout << "fc8-bbox-rot-concat: " <<
-      (*output)[0] << ", " << (*output)[1] << ", " <<
-      (*output)[2] << ", " << (*output)[3] << ", " <<
-      (*output)[4] << ", " << std::endl;
-      */
-
-  // Outputs
-    /*
-  std::vector<float> ignore;
-  GetFeatures("fc6", &ignore);
-  GetFeatures("fc6-rot", &ignore);
-  GetFeatures("fc7", &ignore);
-  GetFeatures("fc7-rot", &ignore);
-  GetFeatures("fc8", &ignore);
-  GetFeatures("fc8-rot", &ignore);
-
-  // Weights??
-  GetFeatures("fc6-new", &ignore);
-  GetFeatures("fc6-new-rot", &ignore);
-  GetFeatures("fc7-new", &ignore);
-  GetFeatures("fc7-new-rot", &ignore);
-  */
 }
 
 // Wrap the input layer of the network in separate cv::Mat objects
