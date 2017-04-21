@@ -187,10 +187,10 @@ void Regressor::GetFeatures(const string& feature_name, std::vector<float>* outp
 
   // DO NOT COMMIT
   // Print occasional layer information to see feed forward output
-#if 1
+#if 0
   static int x = 0;
   ++x;
-  if (x % 1 == 0) {
+  if (x % 100 == 0) {
     // DO NOT COMMIT
     std::cout << "\nRG::GetFtrs " << feature_name << ": " << std::setprecision(5);
     for (int i = 0; i < 10 && i < num_elements; ++i) {
