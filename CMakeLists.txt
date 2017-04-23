@@ -48,6 +48,7 @@ set(GLOG_LIB glog)
 
 add_library (${PROJECT_NAME}
 src/helper/bounding_box.cpp
+src/helper/cyclic_encodable.cpp
 src/train/example_generator.cpp
 src/helper/helper.cpp
 src/helper/high_res_timer.cpp
@@ -67,6 +68,7 @@ src/loader/video_loader.cpp
 src/native/vot.cpp
 
 src/helper/bounding_box.h
+src/helper/cyclic_encodable.h
 src/train/example_generator.h
 src/helper/helper.h
 src/helper/high_res_timer.h
@@ -85,6 +87,7 @@ src/loader/video.h
 src/loader/video_loader.h
 src/native/vot.h
 )
+
 
 # Add src to include directories.
 include_directories(src)
@@ -130,3 +133,47 @@ target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS} ${Boost_LIBRARIES})
 target_link_libraries (show_alov ${PROJECT_NAME})
 
 
+
+# TEST
+
+# TODO: 'make test' fails, reporting "No rule to make target `test'"
+# Temp workaround: '(set -e; cd build; cmake ..; make; ./cyclic_encodable_test)'
+# set -e avoids running unit test if build failed
+
+# https://github.com/google/googletest/blob/master/googletest/README.md#incorporating-into-an-existing-cmake-project
+
+# Download and unpack googletest at configure time
+configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+  RESULT_VARIABLE result
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+if(result)
+  message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+endif()
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+  RESULT_VARIABLE result
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/googletest-download )
+if(result)
+  message(FATAL_ERROR "Build step for googletest failed: ${result}")
+endif()
+
+# Prevent overriding the parent project's compiler/linker
+# settings on Windows
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+# Add googletest directly to our build. This defines
+# the gtest and gtest_main targets.
+add_subdirectory(${CMAKE_BINARY_DIR}/googletest-src
+                 ${CMAKE_BINARY_DIR}/googletest-build)
+
+# The gtest/gtest_main targets carry header search path
+# dependencies automatically when using CMake 2.8.11 or
+# later. Otherwise we have to add them here ourselves.
+if (CMAKE_VERSION VERSION_LESS 2.8.11)
+  include_directories("${gtest_SOURCE_DIR}/include")
+endif()
+
+# Now simply link against gtest or gtest_main as needed. Eg
+add_executable(cyclic_encodable_test src/helper/cyclic_encodable_test.cpp)
+target_link_libraries(cyclic_encodable_test gtest_main ${PROJECT_NAME})
+add_test(NAME cyclic_encodable_test COMMAND cyclic_encodable_test)
